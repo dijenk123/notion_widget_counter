@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Custom Counter Widget</title>
+
+<style>
+    body {
+    margin: 0;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #111;
+    }
+
+    .widget {
+    width: 240px;
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    background: #f0f0f0;
+    position: relative;
+    transition: 0.3s;
+    }
+
+    #title {
+    margin: 0;
+    cursor: text;
+    font-weight: 600;
+    letter-spacing: 1px;
+    }
+
+    h1 {
+    margin: 10px 0;
+    font-size: 40px;
+    }
+
+    button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    }
+
+    .settings-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    font-size: 18px;
+    }
+
+    /* FLOATING PANEL */
+    .settings-panel {
+    position: absolute;
+    top: 50px;
+    right: -10px;
+    width: 210px;
+    padding: 15px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 10;
+    }
+
+    .settings-panel label {
+    font-size: 12px;
+    display: block;
+    margin-top: 10px;
+    text-align: left;
+    }
+
+    .hex-row {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    }
+
+    .hex-input {
+    width: 100%;
+    padding: 5px;
+    font-size: 12px;
+    }
+
+    .copy-btn {
+    padding: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="widget" id="widget">
+
+<button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+
+<h2 contenteditable="true" id="title">Title</h2>
+<h1 id="count">0</h1>
+
+<button id="plus" onclick="changeCount(1)">+</button>
+<button id="minus" onclick="changeCount(-1)">−</button>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-panel" id="settings">
+
+    <label>Background</label>
+    <input type="color" id="bgColor">
+    <div class="hex-row">
+    <input class="hex-input" id="bgHex">
+    <button class="copy-btn" onclick="copyHex('bgHex')">Copy</button>
+    </div>
+
+    <label>Text</label>
+    <input type="color" id="textColor">
+    <div class="hex-row">
+    <input class="hex-input" id="textHex">
+    <button class="copy-btn" onclick="copyHex('textHex')">Copy</button>
+    </div>
+
+    <label>Buttons</label>
+    <input type="color" id="btnColor">
+    <div class="hex-row">
+    <input class="hex-input" id="btnHex">
+    <button class="copy-btn" onclick="copyHex('btnHex')">Copy</button>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+  // COUNTER
+let count = localStorage.getItem("count") || 0;
+document.getElementById("count").innerText = count;
+
+function changeCount(val) {
+    count = Number(count) + val;
+    if (count < 0) count = 0;
+    localStorage.setItem("count", count);
+    document.getElementById("count").innerText = count;
+}
+
+  // SETTINGS TOGGLE
+function toggleSettings() {
+    const panel = document.getElementById("settings");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+
+  // COPY HEX
+function copyHex(id) {
+    const input = document.getElementById(id);
+    input.select();
+    document.execCommand("copy");
+}
+
+  // COLOR SYSTEM
+function setupColor(id, hexId, callback, storageKey) {
+    const picker = document.getElementById(id);
+    const hex = document.getElementById(hexId);
+
+    picker.addEventListener("input", () => {
+    hex.value = picker.value;
+    callback(picker.value);
+    localStorage.setItem(storageKey, picker.value);
+    });
+
+    hex.addEventListener("input", () => {
+    picker.value = hex.value;
+    callback(hex.value);
+    localStorage.setItem(storageKey, hex.value);
+    });
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+    picker.value = saved;
+    hex.value = saved;
+    callback(saved);
+    }
+}
+
+setupColor("bgColor", "bgHex", (color) => {
+    document.getElementById("widget").style.background = color;
+}, "bgColor");
+
+setupColor("textColor", "textHex", (color) => {
+    document.getElementById("widget").style.color = color;
+}, "textColor");
+
+setupColor("btnColor", "btnHex", (color) => {
+    document.getElementById("plus").style.background = color;
+    document.getElementById("minus").style.background = color;
+}, "btnColor");
+
+  // TITLE SYSTEM
+const titleEl = document.getElementById("title");
+
+const savedTitle = localStorage.getItem("title");
+if (savedTitle) {
+    titleEl.innerText = savedTitle;
+}
+
+titleEl.addEventListener("input", () => {
+    localStorage.setItem("title", titleEl.innerText);
+});
+
+titleEl.addEventListener("blur", () => {
+    if (titleEl.innerText.trim() === "") {
+    titleEl.innerText = "Title";
+    localStorage.setItem("title", "Title");
+    }
+});
+</script>
+
+</body>
+</html>
